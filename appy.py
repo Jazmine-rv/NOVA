@@ -8,28 +8,73 @@ import pandas as pd
 st.set_page_config(
     page_title="Tablero de ausentismo · Salud Nova",
     page_icon="🏥",
-    layout="wide"
+    layout="wide",
+    initial_sidebar_state="expanded"
 )
 
 # ============================================================
-# DATOS SIMULADOS (los mismos del HTML original)
+# CSS FORZADO · PALETA WCAG 2.1 AA
+# Azul marino #0B2545 textos · Azul #1D4E89 acento
+# Gris #6B7280 contexto · Naranja #B54708 alertas
+# Blanco roto #FAF8F3 fondo · Bloque #EDF1F6 secciones
+# ============================================================
+st.markdown("""
+<style>
+    /* Fondo blanco roto #FAF8F3 */
+    .stApp {
+        background-color: #FAF8F3;
+    }
+    /* Texto azul marino #0B2545 en títulos y párrafos */
+    h1, h2, h3, h4, h5, h6, p, span, label, .stMarkdown, .stCaption {
+        color: #0B2545 !important;
+    }
+    /* Bloque gris azulado #EDF1F6 para las secciones */
+    .bloque-seccion {
+        background-color: #EDF1F6;
+        border-radius: 12px;
+        padding: 16px;
+        margin-bottom: 16px;
+    }
+    /* Métricas: fondo blanco, borde gris, texto azul marino */
+    [data-testid="stMetric"] {
+        background-color: #FFFFFF;
+        border: 1px solid #C5CCD6;
+        border-radius: 8px;
+        padding: 12px 16px;
+    }
+    [data-testid="stMetricLabel"] {
+        color: #4B5563 !important;
+    }
+    [data-testid="stMetricValue"] {
+        color: #0B2545 !important;
+    }
+    /* Sidebar: fondo blanco y texto azul marino */
+    [data-testid="stSidebar"] {
+        background-color: #FFFFFF;
+    }
+    [data-testid="stSidebar"] * {
+        color: #0B2545 !important;
+    }
+    /* Forzar modo claro (evita que el tema oscuro rompa el contraste) */
+    :root {
+        color-scheme: light;
+    }
+    /* Enlaces y botones con azul de acento #1D4E89 */
+    a, .stButton>button {
+        color: #1D4E89 !important;
+    }
+</style>
+""", unsafe_allow_html=True)
+
+# ============================================================
+# DATOS SIMULADOS
 # ============================================================
 ESPECIALIDADES = ["Cardiología", "Neurología", "Traumatología", "Clínica médica", "Pediatría"]
-
-# Tasa histórica por especialidad (semana 0) y tasa actual (semana 12)
 ST = [34.0, 32.0, 28.0, 24.0, 22.0]      # histórico
 EN = [29.0, 27.0, 24.0, 20.0, 17.5]       # semana 12
-
-# Serie de "Todas las especialidades" (12 semanas)
 OV = [28.0, 27.4, 26.8, 26.2, 25.6, 25.0, 24.6, 24.3, 24.0, 23.8, 23.6, 23.5]
-
-# Sobreturnos preventivos por especialidad (semana 12)
 SOB = [5, 4, 2, 2, 1]
-
-# Espera media [histórico, actual] por especialidad
 WT = [[45, 39], [47, 41], [46, 41], [20, 18], [15, 14]]
-
-# Turnos de riesgo alto (> 70 %) — datos simulados
 TURNOS = [
     [0, "T-49012", "Vie 23/10 · 11:00", 88],
     [0, "T-48213", "Lun 19/10 · 09:00", 86],
@@ -51,7 +96,6 @@ TURNOS = [
 # FUNCIONES AUXILIARES
 # ============================================================
 def serie_especialidad(idx):
-    """Genera la serie de 12 semanas para una especialidad, interpolando entre histórico y semana 12."""
     factor = [(v - 23.5) / 4.5 for v in OV]
     return [EN[idx] + (ST[idx] - EN[idx]) * f for f in factor]
 
@@ -88,11 +132,11 @@ st.caption(
 )
 
 # ============================================================
-# NIVEL 1 · VISIÓN GENERAL (4 KPIs)
+# NIVEL 1 · VISIÓN GENERAL (4 KPIs) — bloque #EDF1F6
 # ============================================================
+st.markdown('<div class="bloque-seccion">', unsafe_allow_html=True)
 st.header("Nivel 1 · Visión general")
 
-# Cálculos
 if idx_esp < 0:
     no_show_actual = OV[-1]
     no_show_base = 28.0
@@ -143,10 +187,12 @@ with col4:
         delta=f"-{espera[0] - espera[1]} días vs. {espera[0]} días previos",
         delta_color="inverse"
     )
+st.markdown('</div>', unsafe_allow_html=True)
 
 # ============================================================
-# NIVEL 2 · CONTEXTO Y COMPARACIÓN
+# NIVEL 2 · CONTEXTO Y COMPARACIÓN — bloque #EDF1F6
 # ============================================================
+st.markdown('<div class="bloque-seccion">', unsafe_allow_html=True)
 st.header("Nivel 2 · Contexto y comparación")
 
 col_graf1, col_graf2 = st.columns(2)
@@ -170,17 +216,21 @@ with col_graf1:
     fig_line.add_hline(
         y=base, line_dash="dash", line_color="#6B7280",
         annotation_text=f"Histórico {base:.0f} %",
-        annotation_position="top right"
+        annotation_position="top right",
+        annotation_font_color="#0B2545"
     )
     fig_line.update_layout(
-        title=f"Evolución del No-Show en {nombre}",
+        title=dict(text=f"Evolución del No-Show en {nombre}", font=dict(color="#0B2545")),
         xaxis_title="Semana",
         yaxis_title="Tasa de No-Show (%)",
         yaxis_range=[min(serie) - 2, base + 2],
         height=400,
         margin=dict(l=20, r=20, t=50, b=20),
         plot_bgcolor="#FAF8F3",
-        paper_bgcolor="#FAF8F3"
+        paper_bgcolor="#FAF8F3",
+        font=dict(color="#0B2545"),
+        xaxis=dict(tickfont=dict(color="#0B2545"), title_font=dict(color="#0B2545")),
+        yaxis=dict(tickfont=dict(color="#0B2545"), title_font=dict(color="#0B2545")),
     )
     st.plotly_chart(fig_line, use_container_width=True)
 
@@ -200,16 +250,20 @@ with col_graf2:
         marker_color=colores,
         text=[f"{v:.1f} %".replace(".", ",") for v in df_barras["No-Show (%)"]],
         textposition="outside",
+        textfont=dict(color="#0B2545"),
         hovertemplate="%{y}: %{x:.1f} %<extra></extra>"
     ))
     fig_bar.update_layout(
-        title="No-Show por especialidad (semana 12)",
+        title=dict(text="No-Show por especialidad (semana 12)", font=dict(color="#0B2545")),
         xaxis_title="Tasa de No-Show (%)",
         xaxis_range=[0, 36],
         height=400,
         margin=dict(l=20, r=20, t=50, b=20),
         plot_bgcolor="#FAF8F3",
         paper_bgcolor="#FAF8F3",
+        font=dict(color="#0B2545"),
+        xaxis=dict(tickfont=dict(color="#0B2545"), title_font=dict(color="#0B2545")),
+        yaxis=dict(tickfont=dict(color="#0B2545"), title_font=dict(color="#0B2545")),
         showlegend=False
     )
     st.plotly_chart(fig_bar, use_container_width=True)
@@ -229,10 +283,12 @@ with st.expander("📊 Ver los datos de los gráficos en una tabla"):
         use_container_width=True,
         hide_index=True
     )
+st.markdown('</div>', unsafe_allow_html=True)
 
 # ============================================================
-# NIVEL 3 · DETALLE A DEMANDA (drill-down)
+# NIVEL 3 · DETALLE A DEMANDA (drill-down) — bloque #EDF1F6
 # ============================================================
+st.markdown('<div class="bloque-seccion">', unsafe_allow_html=True)
 st.header("Nivel 3 · Detalle a demanda")
 
 turnos_filtrados = TURNOS if idx_esp < 0 else [t for t in TURNOS if t[0] == idx_esp]
@@ -256,6 +312,7 @@ else:
             "Solo ID anónimo: sin nombre ni diagnóstico del paciente. "
             "Datos simulados para el prototipo."
         )
+st.markdown('</div>', unsafe_allow_html=True)
 
 # ============================================================
 # PIE DE PÁGINA
@@ -263,5 +320,6 @@ else:
 st.divider()
 st.caption(
     "TIF · Taller de Comunicación · Salud Nova · Prototipo con datos simulados. "
-    "Accesibilidad: contraste AA, codificación por color + texto + patrón (apto para daltonismo)."
+    "Accesibilidad: contraste AA (4.5:1 texto, 3:1 gráficos), codificación por color + texto "
+    "(apto para daltonismo), modo claro forzado."
 )
